@@ -1,13 +1,17 @@
-import time
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 import urllib.request
 import json
 from datetime import date
+from selenium import webdriver
+import time
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
 
-jsonUrl = urllib.request.urlopen("https://bulten.nesine.com/api/bulten/getprebultenfull")
-data = json.loads(jsonUrl.read())
+"""
+nesineUrl = urllib.request.urlopen("https://bulten.nesine.com/api/bulten/getprebultenfull")
+data = json.loads(nesineUrl.read())
 #data = json.dumps(data, indent=2)
 
 nesineMatchList = []
@@ -43,19 +47,49 @@ for match in matches:
                     elif bet['OCA'][i]['N'] == 3:
                         ratioA = bet['OCA'][i]['O']
                 nesineMatchList.append([homeTeam, awayTeam, ratioH, ratioD, ratioA])
+"""
 
 
 
+tempoBetMatchList = [[]]
+driver = webdriver.Chrome()
+driver.get('https://www.686tempobet.com/todays_football.html')
+driver.maximize_window()
+driver.implicitly_wait(15)
+
+last_height = driver.execute_script("return document.body.scrollHeight")
+while True:
+    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+    new_height = driver.execute_script("return document.body.scrollHeight")
+    if new_height == last_height:
+        driver.execute_script("window.scrollTo(0, 0);")
+        break
+    last_height = new_height
 
 
-print(nesineMatchList)
-print(len(nesineMatchList))
-time.sleep(55)
+tempoBetLeagueList = driver.find_elements(By.XPATH, '//div[@class="collapsible"]/div')
+for i in range(1, len(tempoBetLeagueList)+1):
+    tempoBetMatchList = driver.find_elements(By.XPATH, '//div[@class="collapsible"]/div[' + str(i) + ']/table/tbody/tr')
+    for j in range(2, len(tempoBetMatchList)+1):
+        temporaryList = []
+        tempoBetMatchInfosList = driver.find_elements(By.XPATH, '//div[@class="collapsible"]/div[' + str(i) + ']/table/tbody/tr[' + str(j) + ']/td')
+        for k in range(1, len(tempoBetMatchInfosList)):
+            element = driver.find_element(By.XPATH, '//div[@class="collapsible"]/div[' + str(i) + ']/table/tbody/tr[' + str(j) + ']/td[' + str(k) + ']').text
+            if k==1:
+                element = element.split('\n')
+                element = element[1].split('-')
+                for l in range(0, 2):
+                    if l==0:
+                        element[l] = element[l][:-1]
+                    else:
+                        element[l] = element[l][1:]
+                    temporaryList.append(element[l])
+            else:
+                temporaryList.append(element)
+
+        print(temporaryList)
 
 
-
-
-
-df = pd.DataFrame(data=orderDict(dic), columns=['Word', 'Count'])
-saveAsExcel(df)
+#df = pd.DataFrame(data=orderDict(dic), columns=['Word', 'Count'])
+#saveAsExcel(df)
 
