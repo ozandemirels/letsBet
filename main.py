@@ -5,16 +5,15 @@ import urllib.request
 import json
 from datetime import date
 from selenium import webdriver
-import time
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 
-"""
+
+
 nesineUrl = urllib.request.urlopen("https://bulten.nesine.com/api/bulten/getprebultenfull")
 data = json.loads(nesineUrl.read())
 #data = json.dumps(data, indent=2)
 
-nesineMatchList = []
+nesineMatches = []
 matchNum = -1
 matches = data['sg']['EA']
 today = str(date.today())
@@ -40,18 +39,16 @@ for match in matches:
                 print(str(betNum)+'. Bet data searching')
                 betCount = len(bet['OCA'])
                 for i in range(0, betCount):
-                    if bet['OCA'][i]['N'] == 1:   #bruada kaldın
+                    if bet['OCA'][i]['N'] == 1:
                         ratioH = bet['OCA'][i]['O']
                     elif bet['OCA'][i]['N'] == 2:
                         ratioD = bet['OCA'][i]['O']
                     elif bet['OCA'][i]['N'] == 3:
                         ratioA = bet['OCA'][i]['O']
-                nesineMatchList.append([homeTeam, awayTeam, ratioH, ratioD, ratioA])
-"""
+                nesineMatches.append([homeTeam, awayTeam, ratioH, ratioD, ratioA])
 
 
-
-tempoBetMatchList = [[]]
+tempoBetMatches = []
 driver = webdriver.Chrome()
 driver.get('https://www.686tempobet.com/todays_football.html')
 driver.maximize_window()
@@ -65,7 +62,6 @@ while True:
         driver.execute_script("window.scrollTo(0, 0);")
         break
     last_height = new_height
-
 
 tempoBetLeagueList = driver.find_elements(By.XPATH, '//div[@class="collapsible"]/div')
 for i in range(1, len(tempoBetLeagueList)+1):
@@ -86,8 +82,7 @@ for i in range(1, len(tempoBetLeagueList)+1):
                     temporaryList.append(element[l])
             else:
                 temporaryList.append(element)
-
-        print(temporaryList)
+        tempoBetMatches.append(temporaryList)
 
 
 #df = pd.DataFrame(data=orderDict(dic), columns=['Word', 'Count'])
