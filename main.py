@@ -12,12 +12,13 @@ from selenium.webdriver.common.by import By
 def saveAsExcel(df):
     df.to_excel("C:/Users/ozan.demirel/Desktop/betVersus.xlsx")
 
+matchList = []
 
 nesineUrl = urllib.request.urlopen("https://bulten.nesine.com/api/bulten/getprebultenfull")
 data = json.loads(nesineUrl.read())
 #data = json.dumps(data, indent=2)
 
-nesineMatches = []
+
 matchNum = -1
 matches = data['sg']['EA']
 today = str(date.today())
@@ -36,45 +37,7 @@ for match in matches:
             mtid = bet['MTID']
             if mtid == 1:
                 homeTeam = match['HN']
-                homeTeam = homeTeam.lower()
-                homeTeam = homeTeam.split(' ')
-                for x in homeTeam:
-                    if x == 'utd':
-                        x = 'United'
-                    elif x == 'atl':
-                        x = 'atletico'
-                    if len(x) <= 2:
-                        homeTeam.remove(x)
-                        print(homeTeam)
-                if len(homeTeam) == 1:
-                    homeTeam = homeTeam[0]
-                elif len(homeTeam) == 2:
-                    homeTeam = homeTeam[0] + ' ' + homeTeam[1]
-                elif len(homeTeam) == 3:
-                    homeTeam = homeTeam[0] + ' ' + homeTeam[1] + ' ' + homeTeam[2]
-                homeTeam = homeTeam.replace('-', ' ')
-                print(homeTeam)
-                print()
-
-
                 awayTeam = match['AN']
-                awayTeam = awayTeam.lower()
-                awayTeam = awayTeam.split(' ')
-                for y in awayTeam:
-                    if y == 'utd':
-                        y = 'united'
-                    elif y == 'atl':
-                        y = 'atletico'
-                    if len(y) <= 2:
-                        awayTeam.remove(y)
-                        print(awayTeam)
-                if len(awayTeam) == 1:
-                    awayTeam = awayTeam[0]
-                elif len(awayTeam) == 2:
-                    awayTeam = awayTeam[0] + ' ' + awayTeam[1]
-                elif len(awayTeam) == 3:
-                    awayTeam = awayTeam[0] + ' ' + awayTeam[1] + ' ' + awayTeam[2]
-                awayTeam = awayTeam.replace('-', ' ')
                 ratioH = ''
                 ratioD = ''
                 ratioA = ''
@@ -87,12 +50,11 @@ for match in matches:
                         ratioD = bet['OCA'][i]['O']
                     elif bet['OCA'][i]['N'] == 3:
                         ratioA = bet['OCA'][i]['O']
-                nesineMatches.append(['Nesine', homeTeam, awayTeam, str(ratioH), str(ratioD), str(ratioA)])
+                matchList.append(['Nesine', homeTeam, awayTeam, str(ratioH), str(ratioD), str(ratioA)])
 
 
-tempoBetMatches = []
 driver = webdriver.Chrome()
-driver.get('https://www.687tempobet.com/todays_football.html')
+driver.get('https://www.690tempobet.com/todays_football.html')
 driver.maximize_window()
 driver.implicitly_wait(15)
 
@@ -114,62 +76,40 @@ for i in range(1, len(tempoBetLeagueList)+1):
         for k in range(1, len(tempoBetMatchInfosList)):
             element = driver.find_element(By.XPATH, '//div[@class="collapsible"]/div[' + str(i) + ']/table/tbody/tr[' + str(j) + ']/td[' + str(k) + ']').text
             if k == 1:
+                temporaryList.append('TempoBet')
                 element = element.split('\n')
                 element = element[1].split(' - ')
-                print(element[0])
-                print(element[1])
-                temporaryList.append('TempoBet')
                 for m in range(0, 2):
                     team = element[m]
-                    team = team.lower()
-                    team = team.split(' ')
-                    print(team)
-                    for y in team:
-                        if team == 'utd':
-                            team = 'united'
-                        elif team == 'atl':
-                            team = 'atletico'
-                        if len(y) <= 2:
-                            team.remove(y)
-                            print(team)
-                    if len(team) == 1:
-                        team = team[0]
-                    elif len(team) == 2:
-                        team = team[0] + ' ' + team[1]
-                    elif len(team) == 3:
-                        team = team[0] + ' ' + team[1] + ' ' + team[2]
-                    elif len(team) == 4:
-                        team = team[0] + ' ' + team[1] + ' ' + team[2] + '' + team[3]
-                    elif len(team) == 5:
-                        team = team[0] + ' ' + team[1] + ' ' + team[2] + '' + team[3] + '' + team[4]
-                    print(team)
-
-                    team = team.replace('-', ' ')
                     temporaryList.append(team)
             else:
                 temporaryList.append(element)
-        tempoBetMatches.append(temporaryList)
+        matchList.append(temporaryList)
+driver.close()
 
-print(nesineMatches)
-print(tempoBetMatches)
+print()
+for i in range(0, len(matchList)):
+    for j in range(1, 3):
+        matchList[i][j] = matchList[i][j].lower().replace('.', '').replace(' utd', ' united').replace('atl ', 'atletico ')
+        matchList[i][j] = str(matchList[i][j]).split(' ')
+        for word in matchList[i][j]:
+            if len(word) <= 2:
+                matchList[i][j].remove(word)
+        teamName = ''
+        for word in matchList[i][j]:
+            teamName = teamName + word + ' '
+        matchList[i][j] = teamName[:-1]
+
 
 finalList = []
-
-for i in range(0, len(nesineMatches)):
-    for j in range(0, len(tempoBetMatches)):
-        if nesineMatches[i][1] == tempoBetMatches[j][1] and nesineMatches[i][2] == tempoBetMatches[j][2]:
-            print(nesineMatches[i][1])
-            print(nesineMatches[i][2])
-            print(nesineMatches[i][3])
-            print(nesineMatches[i][4])
-            print(nesineMatches[i][5])
-            print(tempoBetMatches[j][3])
-            print(tempoBetMatches[j][4])
-            print(tempoBetMatches[j][5])
-            finalList.append([nesineMatches[i][1], nesineMatches[i][2], nesineMatches[i][3], nesineMatches[i][4], nesineMatches[i][5], tempoBetMatches[j][3], tempoBetMatches[j][4], tempoBetMatches[j][5]])
+for i in range(0, len(matchList)):
+    if matchList[i][0] == 'Nesine':
+        for j in range(0, len(matchList)):
+            if matchList[j][0] == 'TempoBet' and matchList[i][1] == matchList[j][1] and matchList[i][2] == matchList[j][2]:
+                finalList.append([matchList[i][1], matchList[i][2], matchList[i][3], matchList[i][4], matchList[i][5], matchList[j][3], matchList[j][4], matchList[j][5]])
 
 print(len(finalList))
-df = pd.DataFrame(data=finalList, columns=['Home', 'Away', 'Nesine1', 'Nesine0', 'Nesine2','Tempo1','Tempo0','Tempo2'])
+df = pd.DataFrame(data=finalList, columns=['Home', 'Away', 'Nesine1', 'Nesine0', 'Nesine2', 'TempoBet1', 'TempoBet0', 'TempoBet2'])
 
 print(df)
 saveAsExcel(df)
