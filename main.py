@@ -1,24 +1,24 @@
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
+import numpy as np
 import urllib.request
 import json
 from datetime import date
 import datetime
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from openpyxl import Workbook
 
 
 def saveAsExcel(df):
     df.to_excel("C:/Users/ozan.demirel/Desktop/betVersus.xlsx")
 
-matchList = []
 
+matchList = []
 nesineUrl = urllib.request.urlopen("https://bulten.nesine.com/api/bulten/getprebultenfull")
 data = json.loads(nesineUrl.read())
 #data = json.dumps(data, indent=2)
-
-
 matchNum = -1
 matches = data['sg']['EA']
 today = str(date.today())
@@ -58,7 +58,6 @@ driver = webdriver.Chrome()
 driver.get('https://www.690tempobet.com/todays_football.html')
 driver.maximize_window()
 driver.implicitly_wait(15)
-
 last_height = driver.execute_script("return document.body.scrollHeight")
 while True:
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
@@ -89,10 +88,10 @@ for i in range(1, len(tempoBetLeagueList)+1):
         matchList.append(temporaryList)
 driver.close()
 
-print()
+
 for i in range(0, len(matchList)):
     for j in range(2, 4):
-        matchList[i][j] = matchList[i][j].lower().replace('.', '').replace(' utd', ' united').replace('atl ', 'atletico ')
+        matchList[i][j] = matchList[i][j].lower().replace('.', '').replace(' utd', ' united').replace('atl ', 'atletico ').replace('/', ' ')
         matchList[i][j] = str(matchList[i][j]).split(' ')
         print(len(matchList[i][j]))
         for k in range(0, len(matchList[i][j])):
@@ -101,16 +100,13 @@ for i in range(0, len(matchList)):
         matchList[i][j] = list(filter(('').__ne__, matchList[i][j]))
 
 
-
 finalList = []
 for i in range(0, len(matchList)):
     if matchList[i][0] == 'Nesine':
         for j in range(0, len(matchList)):
             if matchList[j][0] == 'TempoBet' and matchList[i][1] == matchList[j][1]:
-
                 countH, countA, totalWordH, totalWordA = 0, 0, 0, 0
                 for k in range(2,4):
-
                     for wordN in matchList[i][k]:
                         for wordT in matchList[j][k]:
                             if wordN == wordT and k == 2:
@@ -121,20 +117,18 @@ for i in range(0, len(matchList)):
                 totalWordA = max(len(matchList[i][3]), len(matchList[j][3]))
                 compatibilityH = countH / totalWordH
                 compatibilityA = countA / totalWordA
-                print(matchList[i][2], matchList[j][2], matchList[i][3], matchList[j][3])
-                print(compatibilityH, compatibilityA)
-                print()
                 if compatibilityH + compatibilityA / 2 >= 0.5:
-                    teamName = ''
+                    homeName, awayName = '', ''
                     for l in range(2, 4):
                         for word in matchList[i][l]:
-                            teamName = teamName + word + ' '
-                        matchList[i][l] = teamName[:-1]
-                    finalList.append([matchList[i][2], matchList[i][3], matchList[i][4], matchList[i][5], matchList[i][6], matchList[j][4], matchList[j][5], matchList[j][6]])
+                            if l == 2:
+                                homeName = homeName + word + ' '
+                            elif l == 3:
+                                awayName = awayName + word + ' '
+                    homeName, awayName = homeName[:-1], awayName[:-1]
+                    finalList.append([homeName, awayName, matchList[i][4], matchList[i][5], matchList[i][6], matchList[j][4], matchList[j][5], matchList[j][6]])
+                    break
 
-print(len(finalList))
+
 df = pd.DataFrame(data=finalList, columns=['Home', 'Away', 'Nesine1', 'Nesine0', 'Nesine2', 'TempoBet1', 'TempoBet0', 'TempoBet2'])
-
-print(df)
 saveAsExcel(df)
-
