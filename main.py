@@ -1,11 +1,7 @@
-import requests
-from bs4 import BeautifulSoup
 import pandas as pd
-import numpy as np
 import urllib.request
 import json
 from datetime import date
-import datetime
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from openpyxl import Workbook
@@ -93,7 +89,6 @@ for i in range(0, len(matchList)):
     for j in range(2, 4):
         matchList[i][j] = matchList[i][j].lower().replace('.', '').replace(' utd', ' united').replace('atl ', 'atletico ').replace('/', ' ')
         matchList[i][j] = str(matchList[i][j]).split(' ')
-        print(len(matchList[i][j]))
         for k in range(0, len(matchList[i][j])):
             if len(matchList[i][j][k]) <= 2:
                 matchList[i][j][k] = ''
