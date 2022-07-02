@@ -29,6 +29,7 @@ for match in matches:
     matchDate = match['D']
     if matchType == 1 and matchDate == today:
         print(str(matchNum)+'. Matches data searching')
+        matchTime = match['T']
         bets = match['MA']
         betNum = -1
         for bet in bets:
@@ -50,7 +51,7 @@ for match in matches:
                         ratioD = bet['OCA'][i]['O']
                     elif bet['OCA'][i]['N'] == 3:
                         ratioA = bet['OCA'][i]['O']
-                matchList.append(['Nesine', homeTeam, awayTeam, str(ratioH), str(ratioD), str(ratioA)])
+                matchList.append(['Nesine', matchTime, homeTeam, awayTeam, str(ratioH), str(ratioD), str(ratioA)])
 
 
 driver = webdriver.Chrome()
@@ -78,6 +79,7 @@ for i in range(1, len(tempoBetLeagueList)+1):
             if k == 1:
                 temporaryList.append('TempoBet')
                 element = element.split('\n')
+                temporaryList.append(element[0])
                 element = element[1].split(' - ')
                 for m in range(0, 2):
                     team = element[m]
@@ -89,24 +91,46 @@ driver.close()
 
 print()
 for i in range(0, len(matchList)):
-    for j in range(1, 3):
+    for j in range(2, 4):
         matchList[i][j] = matchList[i][j].lower().replace('.', '').replace(' utd', ' united').replace('atl ', 'atletico ')
         matchList[i][j] = str(matchList[i][j]).split(' ')
-        for word in matchList[i][j]:
-            if len(word) <= 2:
-                matchList[i][j].remove(word)
-        teamName = ''
-        for word in matchList[i][j]:
-            teamName = teamName + word + ' '
-        matchList[i][j] = teamName[:-1]
+        print(len(matchList[i][j]))
+        for k in range(0, len(matchList[i][j])):
+            if len(matchList[i][j][k]) <= 2:
+                matchList[i][j][k] = ''
+        matchList[i][j] = list(filter(('').__ne__, matchList[i][j]))
+
 
 
 finalList = []
 for i in range(0, len(matchList)):
     if matchList[i][0] == 'Nesine':
         for j in range(0, len(matchList)):
-            if matchList[j][0] == 'TempoBet' and matchList[i][1] == matchList[j][1] and matchList[i][2] == matchList[j][2]:
-                finalList.append([matchList[i][1], matchList[i][2], matchList[i][3], matchList[i][4], matchList[i][5], matchList[j][3], matchList[j][4], matchList[j][5]])
+            if matchList[j][0] == 'TempoBet' and matchList[i][1] == matchList[j][1]:
+
+                countH, countA, totalWordH, totalWordA = 0, 0, 0, 0
+                for k in range(2,4):
+
+                    for wordN in matchList[i][k]:
+                        for wordT in matchList[j][k]:
+                            if wordN == wordT and k == 2:
+                                countH += 1
+                            elif wordN == wordT and k == 3:
+                                countA += 1
+                totalWordH = max(len(matchList[i][2]), len(matchList[j][2]))
+                totalWordA = max(len(matchList[i][3]), len(matchList[j][3]))
+                compatibilityH = countH / totalWordH
+                compatibilityA = countA / totalWordA
+                print(matchList[i][2], matchList[j][2], matchList[i][3], matchList[j][3])
+                print(compatibilityH, compatibilityA)
+                print()
+                if compatibilityH + compatibilityA / 2 >= 0.5:
+                    teamName = ''
+                    for l in range(2, 4):
+                        for word in matchList[i][l]:
+                            teamName = teamName + word + ' '
+                        matchList[i][l] = teamName[:-1]
+                    finalList.append([matchList[i][2], matchList[i][3], matchList[i][4], matchList[i][5], matchList[i][6], matchList[j][4], matchList[j][5], matchList[j][6]])
 
 print(len(finalList))
 df = pd.DataFrame(data=finalList, columns=['Home', 'Away', 'Nesine1', 'Nesine0', 'Nesine2', 'TempoBet1', 'TempoBet0', 'TempoBet2'])
